@@ -2,17 +2,19 @@ operators = {'+': 1, '-': 1, '*': 2, '/': 2, '^': 3, '@': 5, '$': 5, '&': 5, '%'
 
 
 def main():
-    try:
-        expression = input_exercise()
-    except ValueError as e:
-        print(e)
-        return
-    if expression is "end":
-        return
-    try:
-        print(solve(expression))
-    except ValueError as e:
-        print(e)
+    while 1:
+        try:
+            expression = input_exercise()
+        except ValueError as e:
+            print(e)
+            return
+        if expression is "end":
+            break
+        try:
+            print(solve(expression))
+        except ValueError as e:
+            print(e)
+    print("closing the program...")
 
 
 def input_exercise():
