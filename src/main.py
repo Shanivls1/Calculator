@@ -8,7 +8,7 @@ def main():
         except ValueError as e:
             print(e)
             return
-        if expression is "end":
+        if expression == "end":
             break
         try:
             print(solve(expression))
@@ -29,20 +29,29 @@ def input_exercise():
 
 
 def solve(expression):
-    operands = []
-    op = []
+    stack = []
     i = 0
     while i < len(expression):
         num, length = read_number(expression, i)
-        operands.append(num)
+        stack.append(num)
         i += length
         if i >= len(expression):
             break
-        if expression[i] not in operators:
-            raise ValueError("undefined operator: " + expression[i])
-        op.append(expression[i])
+        current_operator = expression[i]
+        if current_operator not in operators:
+            raise ValueError("undefined operator: " + current_operator)
+        # if we already had an operator
+        if len(stack) > 2:
+            last_operator = stack[-2]
+            # if the power of the last operator is greater or equal to the power of the current operator
+            if operators[last_operator] >= operators[current_operator]:
+                num2 = stack.pop()
+                op = stack.pop()
+                num1 = stack.pop()
+                # calculation logic here
+        stack.append(current_operator)
         i += 1
-    return op, operands
+    return stack
 
 
 def read_number(expression, i):
@@ -61,10 +70,12 @@ def read_number(expression, i):
     while i < len(expression) and (expression[i].isdigit() or expression[i] == '.'):
         i += 1
     num = expression[start:i]
+    if num == '':
+        raise ValueError("you entered a '" + expression[i] + "' where a number was expected")
     try:
         num = float(num)
     except ValueError as e:
-        raise ValueError("missing a number")
+        raise ValueError("The number '" + num + "' is not in a correct format")
     # check if the scanned string is a number(could have more than one point)
     return num * sign, i - start
 
