@@ -1,4 +1,5 @@
 operators = {'+': 1, '-': 1, '*': 2, '/': 2, '^': 3, '@': 5, '$': 5, '&': 5, '%': 4, '~': 6, '!': 6}
+unary = ['~', '!']
 
 
 def main():
@@ -38,25 +39,35 @@ def solve(expression):
         if i >= len(expression):
             break
         current_operator = expression[i]
-        if current_operator not in operators:
+        if current_operator not in operators or current_operator in unary:
             raise ValueError("undefined operator: " + current_operator)
         # if we already had an operator
-        if len(stack) > 2:
+        while len(stack) > 2:
             last_operator = stack[-2]
+            if last_operator not in operators or last_operator in unary:
+                raise ValueError("undefined operator: " + last_operator)
             # if the power of the last operator is greater or equal to the power of the current operator
             if operators[last_operator] >= operators[current_operator]:
                 num2 = stack.pop()
                 op = stack.pop()
                 num1 = stack.pop()
-                # calculation logic here
+                stack.append(solve_binary_expression(num1, op, num2))
+            else:
+                break
         stack.append(current_operator)
         i += 1
+    while len(stack) > 1:
+        num2 = stack.pop()
+        op = stack.pop()
+        num1 = stack.pop()
+        print(stack)
+        stack.append(solve_binary_expression(num1, op, num2))
     return stack
 
 
 def read_number(expression, i):
+    base_start = i
     sign = 1
-    start = i
     # check '~' before the operand
     if expression[i] == '~':
         sign = -1
@@ -77,7 +88,31 @@ def read_number(expression, i):
     except ValueError as e:
         raise ValueError("The number '" + num + "' is not in a correct format")
     # check if the scanned string is a number(could have more than one point)
-    return num * sign, i - start
+    return num * sign, i - base_start
+
+
+def solve_binary_expression(num1, op, num2):
+    print("solving:", num1, op, num2)
+    if op == '+':
+        return num1 + num2
+    elif op == '-':
+        return num1 - num2
+    elif op == '*':
+        return num1 * num2
+    elif op == '/':
+        if num2 == 0:
+            raise ValueError("division by zero")
+        return num1 / num2
+    elif op == '^':
+        return num1 ** num2
+    elif op == '@':
+        return (num1 + num2) / 2
+    elif op == '$':
+        return max(num1, num2)
+    elif op == '&':
+        return min(num1, num2)
+    elif op == '%':
+        return num1 % num2
 
 
 if __name__ == "__main__":
