@@ -1,6 +1,4 @@
-from calculator import Calculator
-operators = {'+': 1, '-': 1, '*': 2, '/': 2, '^': 3, '@': 5, '$': 5, '&': 5, '%': 4, '~': 6, '!': 6}
-unary = ['~', '!']
+from solver import solve
 
 
 def main():
@@ -8,7 +6,6 @@ def main():
     An advance calculator program that input mathematical expression of the user until he enter 'end' and print the
     result of the expression
     """
-    calculator = Calculator()
 
     while 1:
         # explanation message
@@ -21,7 +18,7 @@ def main():
             break
 
         try:
-            print(calculator.solve(expression))
+            print(solve(expression))
         except ValueError as e:
             print(e)
 

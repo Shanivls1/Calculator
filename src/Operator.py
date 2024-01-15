@@ -7,6 +7,8 @@ class Operator:
     def __eq__(self, other):
         if isinstance(other, Operator):
             return self.operator == other.operator
+        if isinstance(other, str):
+            return self.operator == other
         return False
 
 

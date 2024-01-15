@@ -85,6 +85,10 @@ operators.append(UnaryOperator('~', 6, negative_operation, 'left'))
 
 # factorial operator
 def factorial_operation(x):
+    try:
+        x = int(x)
+    except ValueError:
+        raise ValueError("cannot calculate the factorial of", x)
     num = 1
     for i in range(1, x + 1):
         num = num * i
