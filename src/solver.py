@@ -4,53 +4,48 @@ from src.Operator import Operator, UnaryOperator
 
 def solve(expression):
     """
-    Solves the mathematical expression in parameters
+    Solves a string of a given mathematical expression in parameters
     :param expression: A string of a mathematical expression
-    :return: The result of the expression
+    :return: The result of the expression as a number
     """
+    if len(expression) == 0:
+        raise ValueError("please enter an expression")
     # a list that hold the operators and operands of the expression
     stack = []
-    """
-    loop that go over the expression
-    each iteration read an operand and calculate it with its unary operators, and the operator that follow him
-    then calculate all the binary expression before him that's operator's priority is smaller or equal to the current
-    operator's priority
-    """
+
     i = 0
+    # read the first number with its unary operators
+    num, length = read_number(expression, i)
+    stack.append(num)
+    i += length
+
+    # expression loop
     while i < len(expression):
-        if expression[i] == '(':
-            close_parentheses_index = find_close_parentheses(expression, i)
-            result_parentheses = solve(expression[i + 1:close_parentheses_index])
-            stack.append(result_parentheses)
-            i = close_parentheses_index+1
-        else:
-            num, length = read_number(expression, i)
-            stack.append(num)
-            i += length
-
-        # if it was the last number
-        if i >= len(expression):
-            break
-
         current_operator = expression[i]
-
-        # if the character that comes after the number in not an accepted operator
+        # if the character is not a binary operator
         if current_operator not in operators:
-            raise ValueError("undefined operator: " + current_operator)
+            raise ValueError("you entered " + current_operator + " where an operator was expected")
+        if isinstance(get_operator_obj(current_operator), UnaryOperator):
+            raise ValueError(
+                "you entered a unary operator (" + current_operator + ") where a binary operator was expected")
 
-        # find the priority of the current operator
+        # get the matching object of the operator
         current_operator_obj = get_operator_obj(current_operator)
 
-        # if there's an operator in the stack and its priority is higher or equal to the priority of the current
+        # calculate all the binary operators in the stack that have higher or equal priority
         while len(stack) > 2 and get_operator_obj(stack[-2]).priority >= current_operator_obj.priority:
             num2 = stack.pop()
             op = stack.pop()
             num1 = stack.pop()
             stack.append(solve_binary_expression(operators[operators.index(op)], num1, num2))
+            print("solving", num1, op, num2, "=", stack[-1])
 
         stack.append(current_operator)
-
         i += 1
+
+        num, length = read_number(expression, i)
+        stack.append(num)
+        i += length
 
     while len(stack) > 1:
         num2 = stack.pop()
@@ -58,8 +53,8 @@ def solve(expression):
         num1 = stack.pop()
 
         stack.append(solve_binary_expression(operators[operators.index(op)], num1, num2))
-    if len(stack)==0:
-        raise ValueError("please enter an expression")
+        print("solving", num1, op, num2, "=", stack[-1])
+
     return stack[0]
 
 
@@ -69,13 +64,19 @@ def solve_binary_expression(operator: Operator, operand1, operand2):
 
 def read_number(expression, i):
     """
-    Read the number in a string expression at index i.
+    Read the operand and the unary operators around it in a string expression at index i.
     :param expression: A string of a mathematical expression
     :param i: The index in the array of the first character of the number we want to read
-    :return: First value: the number we read. Second value: the number of character that compose the number in the string
+    :return: First value: the number we read. Second value: the number of character that compose the operand and unary
+    operators in the string
     """
+    if expression[i] == '(':
+        # calculate the expression in the parentheses
+        close_parentheses_index = find_close_parentheses(expression, i)
+        num = solve(expression[i + 1:close_parentheses_index])
+        length = close_parentheses_index + 1 - i
+        return num, length
     left_unary_operators = []
-    # keep the index of start of the operand
     operand_start_index = i
     current_operator = get_operator_obj(expression[i])
     # set the last priority to the smallest limit
@@ -89,40 +90,52 @@ def read_number(expression, i):
         i += 1
         current_operator = get_operator_obj(expression[i])
     if i >= len(expression):
-        raise ValueError("idk!!!1")
+        raise ValueError("missing an operand at the end of the expression")
     # check sequence of '-' before the operand
     sign = 1
     while expression[i] == '-':
         sign *= -1
         i += 1
     # find the end index of the number
-    start = i
-    while i < len(expression) and (expression[i].isdigit() or expression[i] == '.'):
-        i += 1
-    num = expression[start:i]
-    if num == '':
-        raise ValueError("you entered a '" + expression[i] + "' where a number was expected")
-    # check if the scanned string is a number(could have more than one point)
-    try:
-        num = float(num)
-    except ValueError:
-        raise ValueError("The number '" + num + "' is not in a correct format")
+    if expression[i] == '(':
+        close_parentheses_index = find_close_parentheses(expression, i)
+        result_parentheses = solve(expression[i + 1:close_parentheses_index])
+        num = result_parentheses
+        i = close_parentheses_index + 1
+    else:
+        start = i
+        while i < len(expression) and (expression[i].isdigit() or expression[i] == '.'):
+            i += 1
+        num = expression[start:i]
+        if num == '':
+            raise ValueError("you entered a '" + expression[i] + "' where a number was expected")
+        # check if the scanned string is a number(could have more than one point)
+        try:
+            num = float(num)
+        except ValueError:
+            raise ValueError("The number '" + num + "' is not in a correct format")
     num *= sign
     while len(left_unary_operators) > 0:
+        print("solving", left_unary_operators[-1].operator, num)
+
         num = left_unary_operators.pop().operation(num)
+        print("=", num)
     if i < len(expression):
         current_operator = get_operator_obj(expression[i])
         # set the last priority to the biggest limit
         last_priority = current_operator.priority + 1
         # apply the left unary operators calculation
         # the operators have to be in ascending priority order
-        while (i < len(expression) and current_operator is not None and current_operator.priority < last_priority and
+        while (i < len(expression) and current_operator is not None and current_operator.priority <= last_priority and
                isinstance(current_operator, UnaryOperator) and current_operator.side == 'right'):
-            current_operator = get_operator_obj(expression[i])
             last_priority = current_operator.priority
+            print("solving", num, current_operator.operator)
             num = current_operator.operation(num)
+            print("=", num)
             i += 1
-
+            if i >= len(expression):
+                break
+            current_operator = get_operator_obj(expression[i])
 
     return num, i - operand_start_index
 

@@ -32,7 +32,7 @@ def division_operation(x, y):
     return x / y
 
 
-operators.append(Operator('/', 1, division_operation))
+operators.append(Operator('/', 2, division_operation))
 
 
 # pow operator
@@ -89,6 +89,9 @@ def factorial_operation(x):
         x = int(x)
     except ValueError:
         raise ValueError("cannot calculate the factorial of", x)
+    if x < 0:
+        raise ValueError("cannot calculate the factorial of a negative number")
+
     num = 1
     for i in range(1, x + 1):
         num = num * i
@@ -108,3 +111,10 @@ def sum_digits_operation(x):
 
 
 operators.append(UnaryOperator('#', 6, sum_digits_operation, 'right'))
+
+
+def unary_minus(x):
+    return x * -1
+
+
+operators.append(UnaryOperator('-*', 3.5, unary_minus, 'left'))
