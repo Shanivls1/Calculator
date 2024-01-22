@@ -9,23 +9,30 @@ def solve(expression):
     :return: The result of the expression as a number
     """
     expression = expression.replace(' ', '')
-    if len(expression) == 0.0:
+    if len(expression) == 0:
         return 0
     # a list that hold the operators and operands of the expression
     stack = []
-
     i = 0
+    unary_minus = False
+    if expression[0] == '-':
+        unary_minus = True
+        i = 1
+
     # read the first number with its unary operators
     num, length = read_number(expression, i)
     stack.append(num)
     i += length
+    if i<len(expression) and unary_minus and get_operator_obj(expression[i]).priority < 3.5:
+        stack[0] *= -1
+        unary_minus = False
 
     # expression loop
     while i < len(expression):
         current_operator = expression[i]
         # if the character is not a binary operator
         if current_operator not in operators:
-            raise ValueError("you entered " + current_operator + " where an operator was expected")
+            raise ValueError("you entered (" + current_operator + ") where an operator was expected")
         if isinstance(get_operator_obj(current_operator), UnaryOperator):
             raise ValueError(
                 "you entered a unary operator (" + current_operator + ") where a binary operator was expected")
@@ -54,7 +61,10 @@ def solve(expression):
 
         stack.append(solve_binary_expression(operators[operators.index(op)], num1, num2))
 
-    return round(stack[0], 8)
+    res = stack[0]
+    if unary_minus:
+        res *= -1
+    return round(res, 8)
 
 
 def solve_binary_expression(operator: Operator, operand1, operand2):
