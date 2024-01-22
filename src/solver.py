@@ -1,5 +1,5 @@
-from operators_library import operators
 from src.Operator import Operator, UnaryOperator
+from src.operators_library import operators
 
 
 def solve(expression):
@@ -8,8 +8,9 @@ def solve(expression):
     :param expression: A string of a mathematical expression
     :return: The result of the expression as a number
     """
-    if len(expression) == 0:
-        raise ValueError("please enter an expression")
+    expression = expression.replace(' ', '')
+    if len(expression) == 0.0:
+        return 0
     # a list that hold the operators and operands of the expression
     stack = []
 
@@ -38,7 +39,6 @@ def solve(expression):
             op = stack.pop()
             num1 = stack.pop()
             stack.append(solve_binary_expression(operators[operators.index(op)], num1, num2))
-            print("solving", num1, op, num2, "=", stack[-1])
 
         stack.append(current_operator)
         i += 1
@@ -53,12 +53,14 @@ def solve(expression):
         num1 = stack.pop()
 
         stack.append(solve_binary_expression(operators[operators.index(op)], num1, num2))
-        print("solving", num1, op, num2, "=", stack[-1])
 
-    return stack[0]
+    return round(stack[0], 8)
 
 
 def solve_binary_expression(operator: Operator, operand1, operand2):
+    """
+    Get a binary expression made of two operands and an operator, solve it and return the answer
+    """
     return operator.operation(operand1, operand2)
 
 
@@ -70,12 +72,7 @@ def read_number(expression, i):
     :return: First value: the number we read. Second value: the number of character that compose the operand and unary
     operators in the string
     """
-    if expression[i] == '(':
-        # calculate the expression in the parentheses
-        close_parentheses_index = find_close_parentheses(expression, i)
-        num = solve(expression[i + 1:close_parentheses_index])
-        length = close_parentheses_index + 1 - i
-        return num, length
+
     left_unary_operators = []
     operand_start_index = i
     current_operator = get_operator_obj(expression[i])
@@ -116,20 +113,18 @@ def read_number(expression, i):
             raise ValueError("The number '" + num + "' is not in a correct format")
     num *= sign
     while len(left_unary_operators) > 0:
-        print("solving", left_unary_operators[-1].operator, num)
-
         num = left_unary_operators.pop().operation(num)
         print("=", num)
     if i < len(expression):
         current_operator = get_operator_obj(expression[i])
         # set the last priority to the biggest limit
-        last_priority = current_operator.priority + 1
+        if current_operator is not None:
+            last_priority = current_operator.priority + 1
         # apply the left unary operators calculation
         # the operators have to be in ascending priority order
         while (i < len(expression) and current_operator is not None and current_operator.priority <= last_priority and
                isinstance(current_operator, UnaryOperator) and current_operator.side == 'right'):
             last_priority = current_operator.priority
-            print("solving", num, current_operator.operator)
             num = current_operator.operation(num)
             print("=", num)
             i += 1
@@ -141,6 +136,10 @@ def read_number(expression, i):
 
 
 def get_operator_obj(operator_string):
+    """
+    gets an operator as a string and retrun an Operator Object from the operators list
+    param operator_string: an operator as a string
+    """
     for op in operators:
         if op == operator_string:
             return op
@@ -148,6 +147,10 @@ def get_operator_obj(operator_string):
 
 
 def find_close_parentheses(expression, start_index):
+    """
+    gets an expression and the index of an opening parenthes,
+    returns the index of the matching closing parenthes
+    """
     count = 0
     for i in range(start_index + 1, len(expression)):
         if expression[i] == ')':

@@ -1,4 +1,14 @@
-from solver import solve
+from src.solver import solve
+
+
+def calculate_expression(expression):
+    """
+    calculate a given expression ,catch the error and print it
+    """
+    try:
+        print(solve(expression))
+    except ValueError as e:
+        print(e)
 
 
 def main():
@@ -7,9 +17,7 @@ def main():
     result of the expression
     """
     # explanation message
-    print("Calculator:\n\tsupported operators:\n\t+ : addition\n\t- : subtraction\n\t* : multiplication\n\t/ : "
-          "division\n\t^ : power\n\t@ : average\n\t$ : maximum\n\t& : minimum\n\t% : modulo\n\t~ : "
-          "negative\n\t! : factorial\n-To end the program enter: 'end'\n")
+    print("Calculator:\n\tTo end the program enter: 'end'\n")
     while 1:
         try:
             expression = input("Enter an expression to calculate:\n")
@@ -19,12 +27,7 @@ def main():
 
         if expression == 'end':
             break
-
-        try:
-            print(solve(expression))
-        except ValueError as e:
-            print(e)
-
+        calculate_expression(expression)
     print("closing the program...")
 
 

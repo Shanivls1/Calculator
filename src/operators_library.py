@@ -1,3 +1,5 @@
+import math
+
 from src.Operator import Operator, UnaryOperator
 
 operators = []
@@ -29,6 +31,8 @@ operators.append(Operator('*', 2, multiplication_operation))
 
 # division operator
 def division_operation(x, y):
+    if y == 0 and x != 0:
+        raise ValueError("dividing by zero")
     return x / y
 
 
@@ -37,7 +41,11 @@ operators.append(Operator('/', 2, division_operation))
 
 # pow operator
 def pow_operation(x, y):
-    return x ** y
+    try:
+        value = math.pow(x, y)
+        return value
+    except ValueError as e:
+        raise ValueError("imaginary number!")
 
 
 operators.append(Operator('^', 3, pow_operation))
@@ -85,16 +93,18 @@ operators.append(UnaryOperator('~', 6, negative_operation, 'left'))
 
 # factorial operator
 def factorial_operation(x):
-    try:
-        x = int(x)
-    except ValueError:
-        raise ValueError("cannot calculate the factorial of", x)
-    if x < 0:
-        raise ValueError("cannot calculate the factorial of a negative number")
-
-    num = 1
+    if not isinstance(x, (int, float)):
+        raise ValueError("Input must be an integer or a float.")
+    if x != int(x) or x < 0:
+        raise ValueError("Factorial is defined only for non-negative integers.")
+    x = int(x)
+    if x < 1:
+        return 1
+    num = 1.0
     for i in range(1, x + 1):
-        num = num * i
+        num *= i
+        if math.isinf(num):
+            raise ValueError("number is too large")
     return num
 
 
@@ -103,11 +113,13 @@ operators.append(UnaryOperator('!', 6, factorial_operation, 'right'))
 
 # sum digits operator
 def sum_digits_operation(x):
-    num = 0
-    while x != 0:
-        num = num + x % 10
-        x = x // 10
-    return num
+    string_x = (str(x)).replace('.', '')
+    sum_digits = 0
+    for digit in string_x:
+        if digit == 'e':
+            return sum_digits
+        sum_digits += int(digit)
+    return sum_digits
 
 
 operators.append(UnaryOperator('#', 6, sum_digits_operation, 'right'))
